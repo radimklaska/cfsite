@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hosting · cfsite</title>
+  <meta name="description" content="An assets-only Cloudflare Worker on a custom domain: configuration, 404 page, redirects, analytics, pinned tooling and the deploy token.">
+  <link rel="canonical" href="https://cfsite.klaska.net/hosting/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a class="site" href="/">cfsite</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="/hosting/" aria-current="page">Hosting</a></li>
+        <li><a href="/pull-requests/">Pull requests</a></li>
+        <li><a href="/checks/">Checks</a></li>
+        <li><a href="/new-site/">New site</a></li>
+        <li><a href="/gotchas/">Gotchas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Hosting</h1>
+    <p class="lead">One Cloudflare Worker per site, serving a folder of static files on the
+      site's own hostname. Configured in
+      <a href="https://github.com/radimklaska/cfsite/blob/main/wrangler.jsonc">wrangler.jsonc</a>.</p>
+
+    <h2 id="worker">An assets-only Worker</h2>
+    <p>The Worker has no script, only <a href="https://developers.cloudflare.com/workers/static-assets/">static assets</a>:
+      every request is a free static-asset request, and there is no code to break or keep up to date.</p>
+    <ul>
+      <li><code>assets.directory</code> is a dedicated folder, here <code>site/</code>, or the
+        generator's output such as <code>_site/</code>. Not the repository root, so nothing but
+        the site gets published.</li>
+      <li><code>html_handling: "auto-trailing-slash"</code> gives clean URLs:
+        <code>hosting/index.html</code> is served as <code>/hosting/</code>.</li>
+    </ul>
+
+    <h2 id="custom-domain">One hostname, nothing on workers.dev</h2>
+    <p><code>routes</code> with <code>custom_domain: true</code> attaches the Worker to its
+      hostname, here <code>cfsite.klaska.net</code>. On the first deploy Cloudflare creates the
+      DNS record and the certificate itself; HTTPS works within a minute or two, and plain HTTP
+      redirects to it.</p>
+    <p><code>workers_dev: false</code> keeps production off the shared
+      <code>*.workers.dev</code> domain, so the site has exactly one address.
+      <code>preview_urls: true</code> still allows the per-PR previews there, and Cloudflare marks
+      those <code>noindex</code>.</p>
+
+    <h2 id="not-found">Custom 404 page</h2>
+    <p><code>not_found_handling: "404-page"</code> serves the nearest <code>404.html</code> with
+      status 404. A single-page app would use <code>"single-page-application"</code> instead.
+      See <a href="/no-such-page">a missing page</a>.</p>
+
+    <h2 id="redirects">Redirects</h2>
+    <p>Optional. A <code>_redirects</code> file in the site folder holds 301s for moved URLs: exact
+      paths first, then splats such as <code>/old/* https://new.example/:splat 301</code>. Here it
+      only demonstrates the feature: <a href="/new">/new</a> goes to the New site page. Jekyll
+      skips files starting with <code>_</code>, so a Jekyll site needs
+      <code>include: ["_redirects"]</code> in <code>_config.yml</code>.</p>
+
+    <h2 id="analytics">Analytics</h2>
+    <p>Cloudflare Web Analytics is switched on for the whole klaska.net zone with automatic
+      setup: the analytics script is added to every HTML page a Cloudflare-served host returns.
+      No tag in the code, no cookies, no consent banner.</p>
+
+    <h2 id="pinned">Pinned tooling</h2>
+    <p>Exact versions in <a href="https://github.com/radimklaska/cfsite/blob/main/package.json">package.json</a>
+      (wrangler, Playwright, Lighthouse, qrcode), a committed <code>package-lock.json</code> that
+      CI installs with <code>npm ci</code>, and a fixed <code>compatibility_date</code>. Updates
+      are deliberate pull requests, and their previews show what changed.</p>
+
+    <h2 id="deploy-token">Its own deploy token</h2>
+    <p>Each repository gets its own Cloudflare API token, stored as the repository secrets
+      <code>CLOUDFLARE_API_TOKEN</code> and <code>CLOUDFLARE_ACCOUNT_ID</code>. It can do only what
+      a deploy needs and expires after a year:</p>
+    <ul>
+      <li>on the zone: Zone Read, Workers Routes Write</li>
+      <li>on the account: Workers Scripts Write, Account Settings Read</li>
+    </ul>
+    <p><a href="https://github.com/radimklaska/cfsite/blob/main/scripts/create-deploy-token.sh">scripts/create-deploy-token.sh</a>
+      creates it through the API, stores both secrets and verifies the token, without ever
+      printing it. A leaked token from one repository cannot touch DNS or any other site's
+      settings.</p>
+
+    <h2 id="production">Production deploys</h2>
+    <p>A push to <code>main</code> runs <code>wrangler deploy</code>. The workflow can also be
+      started by hand (Actions → Deploy to Cloudflare → Run workflow) to redeploy without a
+      commit. Only one production deploy runs at a time.</p>
+
+  </main>
+
+  <footer>
+    <p>Source, workflows and this text: <a href="https://github.com/radimklaska/cfsite">github.com/radimklaska/cfsite</a>.
+      Served by the Cloudflare Worker it describes.</p>
+  </footer>
+</body>
+</html>

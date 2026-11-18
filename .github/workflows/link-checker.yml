@@ -1,0 +1,38 @@
+name: Link Checker
+
+# Explained on https://cfsite.klaska.net/checks/. Checks the links in the built site
+# (the same directory wrangler deploys) on PRs, weekly, and on demand.
+# Sites that block CI runners (403/429) go into --exclude with a comment saying why.
+# Excluded here: linkedin.com (blocks CI runners), /no-such-page (a deliberate 404 that
+# shows the 404 page), /new (exists only as a rule in site/_redirects).
+
+on:
+  schedule:
+    - cron: '0 7 * * 1' # Mondays 07:00 UTC
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      # If the site is generated, build it here the same way deploy.yml does.
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --root-dir site/
+            --exclude linkedin.com
+            --exclude 'no-such-page'
+            --exclude '/new$'
+            site/
+          fail: true

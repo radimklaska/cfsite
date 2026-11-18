@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>cfsite: static sites on Cloudflare</title>
+  <meta name="description" content="How Radim Klaška's static sites are hosted on Cloudflare Workers, with PR previews and checks. The site is built the way it describes.">
+  <link rel="canonical" href="https://cfsite.klaska.net/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a class="site" href="/">cfsite</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="/hosting/">Hosting</a></li>
+        <li><a href="/pull-requests/">Pull requests</a></li>
+        <li><a href="/checks/">Checks</a></li>
+        <li><a href="/new-site/">New site</a></li>
+        <li><a href="/gotchas/">Gotchas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Static sites on Cloudflare</h1>
+    <p class="lead">How the klaska.net sites are hosted, previewed and checked. This site is built
+      exactly that way, so everything described here is running underneath this page.</p>
+    <p>It is also the starting point for a new site: copy
+      <a href="https://github.com/radimklaska/cfsite">the repository</a>, change a few names
+      (<a href="/new-site/">New site</a>) and the whole setup comes with it.</p>
+
+    <h2 id="principles">Principles</h2>
+    <ol>
+      <li><strong>Static files only.</strong> An assets-only Cloudflare Worker serves a folder of
+        files. No server code, and no build step unless the site needs a generator.</li>
+      <li><strong>One site, one hostname.</strong> Each site lives on its own subdomain as a
+        Worker custom domain. Production exists nowhere else.</li>
+      <li><strong>Every change goes through a pull request</strong> with a live preview, a comment
+        with its links, a QR code for phones and Lighthouse scores.</li>
+      <li><strong>Production is the baseline.</strong> Visual regression compares the preview
+        with the live site, so there are no stored screenshots to maintain.</li>
+      <li><strong>Pinned, so it behaves the same next year.</strong> Exact versions of every
+        tool, a committed <code>package-lock.json</code> and a fixed compatibility date.</li>
+      <li><strong>Least privilege.</strong> Each repository has its own Cloudflare token that can
+        only deploy Workers, and it expires after a year.</li>
+      <li><strong>Nothing left behind.</strong> Previews are deleted when the pull request closes,
+        and outdated comments are collapsed.</li>
+      <li><strong>The documentation lives with the code.</strong> README and CLAUDE.md in every
+        repository; here, the site itself.</li>
+    </ol>
+
+    <h2 id="used-here">Where each feature is in this repository</h2>
+    <table>
+      <thead>
+        <tr><th scope="col">Feature</th><th scope="col">File</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><a href="/hosting/#worker">Assets-only Worker on a custom domain</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/wrangler.jsonc">wrangler.jsonc</a></td></tr>
+        <tr><td><a href="/hosting/#not-found">Custom 404 page</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/site/404.html">site/404.html</a></td></tr>
+        <tr><td><a href="/hosting/#redirects">Redirects</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/site/_redirects">site/_redirects</a></td></tr>
+        <tr><td><a href="/hosting/#pinned">Pinned tooling</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/package.json">package.json</a></td></tr>
+        <tr><td><a href="/hosting/#deploy-token">Per-repository deploy token</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/scripts/create-deploy-token.sh">scripts/create-deploy-token.sh</a></td></tr>
+        <tr><td><a href="/hosting/#production">Production deploy, manual deploy button</a></td>
+          <td rowspan="3"><a href="https://github.com/radimklaska/cfsite/blob/main/.github/workflows/deploy.yml">.github/workflows/deploy.yml</a></td></tr>
+        <tr><td><a href="/pull-requests/">Previews, PR comment, QR code, cleanup</a></td></tr>
+        <tr><td><a href="/checks/#visual">Visual regression</a>, <a href="/checks/#lighthouse">Lighthouse</a></td></tr>
+        <tr><td><a href="/checks/#lighthouse">Lighthouse job summary</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/.github/lighthouse-summary.jq">.github/lighthouse-summary.jq</a></td></tr>
+        <tr><td><a href="/checks/#visual">Screenshot comparison</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/tests/visual.spec.mjs">tests/visual.spec.mjs</a></td></tr>
+        <tr><td><a href="/checks/#links">Link checker</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/.github/workflows/link-checker.yml">.github/workflows/link-checker.yml</a></td></tr>
+        <tr><td><a href="/checks/#claude">Claude code review</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/.github/workflows/claude-code-review.yml">.github/workflows/claude-code-review.yml</a></td></tr>
+        <tr><td><a href="/new-site/#docs">Docs in the repository</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/README.md">README.md</a>,
+            <a href="https://github.com/radimklaska/cfsite/blob/main/CLAUDE.md">CLAUDE.md</a></td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Try it: <a href="/new">/new</a> is a redirect to the New site page, and
+      <a href="/no-such-page">a missing page</a> shows the custom 404.</p>
+  </main>
+
+  <footer>
+    <p>Source, workflows and this text: <a href="https://github.com/radimklaska/cfsite">github.com/radimklaska/cfsite</a>.
+      Served by the Cloudflare Worker it describes.</p>
+  </footer>
+</body>
+</html>

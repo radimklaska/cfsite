@@ -1,0 +1,4 @@
+# Cloudflare Workers static assets redirects: <from> <to> [status]. Explained on
+# https://cfsite.klaska.net/hosting/#redirects. Exact paths before splats.
+/new /new-site/ 301
+/template https://github.com/radimklaska/cfsite 302

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checks · cfsite</title>
+  <meta name="description" content="Visual regression against production, Lighthouse scores, a link checker and Claude code review on every pull request.">
+  <link rel="canonical" href="https://cfsite.klaska.net/checks/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a class="site" href="/">cfsite</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="/hosting/">Hosting</a></li>
+        <li><a href="/pull-requests/">Pull requests</a></li>
+        <li><a href="/checks/" aria-current="page">Checks</a></li>
+        <li><a href="/new-site/">New site</a></li>
+        <li><a href="/gotchas/">Gotchas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Checks</h1>
+    <p class="lead">What runs on every pull request besides the preview, and what to do when
+      one of them goes red.</p>
+
+    <h2 id="visual">Visual regression</h2>
+    <p>The <code>visual</code> job opens every page on the preview and on production in
+      Playwright, takes full-page screenshots at a fixed viewport and compares them with
+      pixelmatch (<a href="https://github.com/radimklaska/cfsite/blob/main/tests/visual.spec.mjs">tests/visual.spec.mjs</a>).
+      There are no stored baseline images: production is the baseline.</p>
+    <ul>
+      <li>A pull request that changes how a page looks fails it <strong>on purpose</strong>.
+        Look at the <code>visual-diffs</code> artifact (preview, production and diff images),
+        and if the change is what you wanted, merge anyway.</li>
+      <li>The page list is explicit, and includes a missing page so the 404 is compared too.</li>
+      <li>Parts that differ on every load (dates, live data) are masked by selector rather than
+        by raising the tolerance. For pages that render live API data, fetch each response once
+        and replay it to both sides, and freeze the clock.</li>
+    </ul>
+    <p class="muted">Variant, not used here: on a site where pull requests are mostly content
+      edits, run the comparison only when the toolchain changes (templates, styles,
+      dependencies), since content edits change pages on purpose.</p>
+
+    <h2 id="lighthouse">Lighthouse</h2>
+    <p>The <code>lighthouse</code> job runs Lighthouse on the preview's home page and writes the
+      scores into that deploy's preview comment, with two links:</p>
+    <ul>
+      <li>the job summary on GitHub, with the scores, the main speed metrics and every audit
+        below 90, per category
+        (<a href="https://github.com/radimklaska/cfsite/blob/main/.github/lighthouse-summary.jq">lighthouse-summary.jq</a>);</li>
+      <li>the full HTML report, uploaded as a single unzipped file.</li>
+    </ul>
+    <p>Details that make the numbers usable:</p>
+    <ul>
+      <li>Mobile, Lighthouse's default. Three runs; the run with the median performance score is
+        reported, because a single run's performance score can swing by 50 points on a CI
+        runner.</li>
+      <li>The <code>is-crawlable</code> audit is skipped: previews are <code>noindex</code> on
+        purpose, and it would cost a third of the SEO score on every pull request.</li>
+      <li>Informational only: no thresholds, it never blocks a merge. Compare pull requests
+        with each other; CI runners score performance lower than a laptop.</li>
+    </ul>
+
+    <h2 id="links">Link checker</h2>
+    <p><a href="https://github.com/radimklaska/cfsite/blob/main/.github/workflows/link-checker.yml">link-checker.yml</a>
+      runs <a href="https://lychee.cli.rs/">lychee</a> over the published folder on pull requests,
+      every Monday and by hand. Links that cannot work by design (this site links to a missing page
+      on purpose) and sites that block CI runners are excluded, each with a comment saying why.
+      Links to private repositories always fail: they look like 404s from outside.</p>
+
+    <h2 id="claude">Claude code review</h2>
+    <p><code>claude-code-review.yml</code> reviews every pull request automatically, and
+      <code>claude.yml</code> answers <code>@claude</code> mentions in issues and pull requests.
+      Both need the secret <code>CLAUDE_CODE_OAUTH_TOKEN</code>, set up with
+      <code>/install-github-app</code> in Claude Code.</p>
+  </main>
+
+  <footer>
+    <p>Source, workflows and this text: <a href="https://github.com/radimklaska/cfsite">github.com/radimklaska/cfsite</a>.
+      Served by the Cloudflare Worker it describes.</p>
+  </footer>
+</body>
+</html>

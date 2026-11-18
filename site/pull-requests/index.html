@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pull requests · cfsite</title>
+  <meta name="description" content="A live preview for every pull request, a comment with its links, a QR code and Lighthouse scores, and cleanup when the pull request closes.">
+  <link rel="canonical" href="https://cfsite.klaska.net/pull-requests/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a class="site" href="/">cfsite</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="/hosting/">Hosting</a></li>
+        <li><a href="/pull-requests/" aria-current="page">Pull requests</a></li>
+        <li><a href="/checks/">Checks</a></li>
+        <li><a href="/new-site/">New site</a></li>
+        <li><a href="/gotchas/">Gotchas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Pull requests</h1>
+    <p class="lead">Every pull request gets a live copy of the site, linked in a comment, and
+      the copy disappears when the pull request closes. All in
+      <a href="https://github.com/radimklaska/cfsite/blob/main/.github/workflows/deploy.yml">deploy.yml</a>.</p>
+
+    <h2 id="preview">A preview per pull request</h2>
+    <p><code>wrangler preview --name pr-&lt;N&gt;</code> uploads the site as a
+      <a href="https://developers.cloudflare.com/workers/configuration/previews/">Workers Preview</a>
+      at <code>https://pr-&lt;N&gt;-&lt;worker&gt;.&lt;account&gt;.workers.dev</code>, updated on
+      every push. Each push also gets its own version URL, so the state of any commit stays
+      reachable. Production is untouched until the merge.</p>
+    <p>It needs <code>"previews": {}</code> in <code>wrangler.jsonc</code>. If the Worker does
+      not exist yet, the first preview creates it, without a route, so pull requests work even
+      before the first production deploy.</p>
+
+    <h2 id="comment">The preview comment</h2>
+    <p>Each deploy posts a new comment, titled with its commit, with a table:</p>
+    <table>
+      <thead>
+        <tr><th scope="col">Row</th><th scope="col">What it holds</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Preview</td><td>The pull request's preview URL</td></tr>
+        <tr><td>This commit</td><td>The version URL of exactly this commit</td></tr>
+        <tr><td>Deploy log</td><td>The workflow run: build, deploy, visual, Lighthouse</td></tr>
+        <tr><td>Preview on mobile</td><td>A collapsible <a href="#qr">QR code</a> of the preview URL</td></tr>
+        <tr><td>Lighthouse</td><td>Scores of the preview's home page, filled in by the
+          <a href="/checks/#lighthouse">lighthouse job</a></td></tr>
+      </tbody>
+    </table>
+    <p>The earlier preview comments are then collapsed as <em>outdated</em> (GitHub's
+      <code>minimizeComment</code>), so the conversation stays short while every old comment keeps
+      its links and scores one click away. Comments are found by the hidden marker
+      <code>&lt;!-- preview-links --&gt;</code> they start with. The workflow's own
+      <code>GITHUB_TOKEN</code> is enough; no extra app or token.</p>
+
+    <h2 id="qr">QR code</h2>
+    <p>GitHub comments cannot embed an image inline, so the QR code is a PNG published inside the
+      preview itself, at <code>/pr-preview-qr.png</code>; it never reaches production. That needs the
+      preview URL before the upload: it is predicted from the Worker name and the account's
+      workers.dev subdomain (<code>WORKERS_SUBDOMAIN</code>), and checked against what wrangler
+      reports afterwards. If they differ, the QR code is redone and the preview uploaded once more,
+      with a warning to fix the setting. Black on white, so it also scans in GitHub's dark mode.</p>
+
+    <h2 id="cleanup">Cleanup</h2>
+    <p>When the pull request is closed or merged, <code>wrangler preview delete</code> removes the
+      preview, the preview comments are collapsed (their links are dead now) and a short new
+      comment says so. Reopening the pull request starts over with a fresh preview.</p>
+
+    <h2 id="forks">Forks and Dependabot</h2>
+    <p>Pull requests from forks and from Dependabot run without the repository's secrets, so
+      they cannot be previewed. Fork pull requests skip the deploy job; Dependabot's run it but
+      skip the preview and everything that needs one, instead of failing. The link checker still
+      runs on both.</p>
+
+    <h2 id="concurrency">One run at a time</h2>
+    <p>Runs are grouped per pull request (and one group for production) without cancelling: a new
+      push waits for the previous run, and closing a pull request waits for a running deploy, so
+      the cleanup never races a preview upload.</p>
+  </main>
+
+  <footer>
+    <p>Source, workflows and this text: <a href="https://github.com/radimklaska/cfsite">github.com/radimklaska/cfsite</a>.
+      Served by the Cloudflare Worker it describes.</p>
+  </footer>
+</body>
+</html>

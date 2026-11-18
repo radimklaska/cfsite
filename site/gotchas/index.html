@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gotchas · cfsite</title>
+  <meta name="description" content="Problems met while setting up static sites on Cloudflare Workers, and their fixes.">
+  <link rel="canonical" href="https://cfsite.klaska.net/gotchas/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a class="site" href="/">cfsite</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="/hosting/">Hosting</a></li>
+        <li><a href="/pull-requests/">Pull requests</a></li>
+        <li><a href="/checks/">Checks</a></li>
+        <li><a href="/new-site/">New site</a></li>
+        <li><a href="/gotchas/" aria-current="page">Gotchas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Gotchas</h1>
+    <p class="lead">Each of these cost time once. The fix is already in this repository.</p>
+
+    <h2 id="cloudflare">Cloudflare</h2>
+    <h3 id="dns">The first deploy will not replace a DNS record</h3>
+    <p>If the hostname already has an A, AAAA or CNAME record, <code>wrangler deploy</code>
+      fails: <em>already has externally managed DNS records [code: 100117]</em>. Delete the record
+      and re-run the job. Cloudflare then creates its own record and certificate.</p>
+    <h3 id="previews-config"><code>wrangler preview</code> needs <code>"previews": {}</code></h3>
+    <p>Without the (empty) block in <code>wrangler.jsonc</code> the preview upload fails.</p>
+    <h3 id="compat-date">A compatibility date that is too new</h3>
+    <p>A <code>compatibility_date</code> newer than the local runtime breaks
+      <code>wrangler dev</code>. Use a date a few days old, not today's.</p>
+    <h3 id="hidden-errors">wrangler errors hidden in CI</h3>
+    <p>In a step that runs with <code>bash -e</code>, a failing wrangler command shows only
+      <em>exit 1</em>. Capture the exit code and print wrangler's output yourself, as the deploy
+      workflow does.</p>
+
+    <h2 id="github-actions">GitHub Actions</h2>
+    <h3 id="ubuntu">ubuntu-latest moves</h3>
+    <p><code>ubuntu-latest</code> is Ubuntu 26.04, which <code>ruby/setup-ruby</code> has no
+      older Ruby builds for. Jobs that build with Ruby (Jekyll) pin <code>ubuntu-24.04</code>.</p>
+    <h3 id="qrcode-stdin">The QR code tool waits for input</h3>
+    <p><code>npx qrcode</code> reads the text from standard input when it is not run in a
+      terminal, and hangs in CI. Call it with <code>&lt; /dev/null</code>; it then takes the
+      text from its arguments.</p>
+    <h3 id="playwright">Playwright browser downloads</h3>
+    <p>A first download of a new Playwright browser version can be slow or hang, and installing
+      its system packages sometimes takes ten minutes on a runner. Keep Playwright pinned, and
+      give the job a timeout.</p>
+    <h3 id="secrets">No secrets for Dependabot and forks</h3>
+    <p>Their pull requests run without repository secrets. Check for the token
+      (<code>secrets.CLOUDFLARE_API_TOKEN != ''</code>) and skip the preview, instead of letting
+      the job fail.</p>
+    <h3 id="artifacts">Artifacts are zips</h3>
+    <p>By default an uploaded artifact downloads as a zip. For a single HTML report,
+      <code>actions/upload-artifact</code> v7 with <code>archive: false</code> keeps it a plain
+      file.</p>
+
+    <h2 id="testing">Testing</h2>
+    <h3 id="live-data">Pages with live data</h3>
+    <p>A page that renders data fetched at load time differs between the preview and
+      production. In the visual test, fetch each API response once with Playwright's
+      <code>page.route</code> and replay it to both sides, and freeze the clock with
+      <code>page.clock.setFixedTime</code>. Only on those pages: a frozen clock can hang pages that
+      wait for time to pass.</p>
+    <h3 id="lighthouse-noise">Lighthouse performance is noisy</h3>
+    <p>The same preview can score 100 and then 53. Use the median of several runs, and do not
+      compare CI scores with a laptop's.</p>
+    <h3 id="local-timeout">Local Playwright runs that never return</h3>
+    <p><code>timeout 120 npx playwright test</code> can wait forever for npx; use
+      <code>timeout -k 5 120</code>.</p>
+
+  </main>
+
+  <footer>
+    <p>Source, workflows and this text: <a href="https://github.com/radimklaska/cfsite">github.com/radimklaska/cfsite</a>.
+      Served by the Cloudflare Worker it describes.</p>
+  </footer>
+</body>
+</html>
