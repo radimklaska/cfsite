@@ -17,7 +17,8 @@ template for a new site (see [New site](https://cfsite.klaska.net/new-site/)).
 - Push to `main` (or run the workflow by hand): production.
 - Pull request: a Workers Preview `pr-<N>`, a new comment per deploy with the preview
   URL, this commit's URL, the run, a QR code and Lighthouse scores; older preview comments
-  are collapsed. Jobs `visual` (screenshots vs production) and `lighthouse`.
+  are collapsed. Jobs `visual` (screenshots vs production; `tests/visual-report.mjs` makes
+  the diffs page) and `lighthouse`; job `comment` writes both results into the comment.
 - Pull request closed: the preview is deleted and the comments collapsed.
 - Also: `link-checker.yml` (lychee), `claude-code-review.yml` and `claude.yml`.
 

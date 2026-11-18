@@ -35,8 +35,13 @@
       There are no stored baseline images: production is the baseline.</p>
     <ul>
       <li>A pull request that changes how a page looks fails it <strong>on purpose</strong>.
-        Look at the <code>visual-diffs</code> artifact (preview, production and diff images),
-        and if the change is what you wanted, merge anyway.</li>
+        The preview comment says which pages differ and by how much, and links a single page
+        that shows the preview, production and the difference side by side
+        (<a href="https://github.com/radimklaska/cfsite/blob/main/tests/visual-report.mjs">tests/visual-report.mjs</a>).
+        It is uploaded unzipped, so it opens straight in the browser. If the change is what you
+        wanted, merge anyway.</li>
+      <li>The job summary lists every page with its share of differing pixels and the change in
+        page height.</li>
       <li>The page list is explicit, and includes a missing page so the 404 is compared too.</li>
       <li>Parts that differ on every load (dates, live data) are masked by selector rather than
         by raising the tolerance. For pages that render live API data, fetch each response once
@@ -53,7 +58,8 @@
       <li>the job summary on GitHub, with the scores, the main speed metrics and every audit
         below 90, per category
         (<a href="https://github.com/radimklaska/cfsite/blob/main/.github/lighthouse-summary.jq">lighthouse-summary.jq</a>);</li>
-      <li>the full HTML report, uploaded as a single unzipped file.</li>
+      <li>the full HTML report, uploaded as a single unzipped file, so it opens in the
+        browser.</li>
     </ul>
     <p>Details that make the numbers usable:</p>
     <ul>
@@ -71,7 +77,9 @@
       runs <a href="https://lychee.cli.rs/">lychee</a> over the published folder on pull requests,
       every Monday and by hand. Links that cannot work by design (this site links to a missing page
       on purpose) and sites that block CI runners are excluded, each with a comment saying why.
-      Links to private repositories always fail: they look like 404s from outside.</p>
+      Links to private repositories always fail: they look like 404s from outside. Links to this
+      repository's own files are checked against the pull request's files
+      (<code>--remap</code>), so a new file can be linked in the same pull request.</p>
 
     <h2 id="claude">Claude code review</h2>
     <p><code>claude-code-review.yml</code> reviews every pull request automatically, and

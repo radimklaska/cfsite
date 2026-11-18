@@ -50,10 +50,15 @@
         <tr><td>This commit</td><td>The version URL of exactly this commit</td></tr>
         <tr><td>Deploy log</td><td>The workflow run: build, deploy, visual, Lighthouse</td></tr>
         <tr><td>Preview on mobile</td><td>A collapsible <a href="#qr">QR code</a> of the preview URL</td></tr>
-        <tr><td>Lighthouse</td><td>Scores of the preview's home page, filled in by the
-          <a href="/checks/#lighthouse">lighthouse job</a></td></tr>
+        <tr><td>Visual</td><td>How many pages match production, and for those that do not,
+          the difference and a link to the <a href="/checks/#visual">diffs page</a></td></tr>
+        <tr><td>Lighthouse</td><td>Scores of the preview's home page, with links to the
+          <a href="/checks/#lighthouse">details</a></td></tr>
       </tbody>
     </table>
+    <p>The Visual and Lighthouse rows say <em>running...</em> until their jobs finish; then a
+      small <code>comment</code> job writes both. It is the only job that edits the comment after
+      it is posted, so the two jobs, which run in parallel, cannot overwrite each other's row.</p>
     <p>The earlier preview comments are then collapsed as <em>outdated</em> (GitHub's
       <code>minimizeComment</code>), so the conversation stays short while every old comment keeps
       its links and scores one click away. Comments are found by the hidden marker
