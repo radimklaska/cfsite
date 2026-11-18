@@ -72,6 +72,10 @@
       (wrangler, Playwright, Lighthouse, qrcode), a committed <code>package-lock.json</code> that
       CI installs with <code>npm ci</code>, and a fixed <code>compatibility_date</code>. Updates
       are deliberate pull requests, and their previews show what changed.</p>
+    <p>Updates take only releases that are <strong>at least 7 days old</strong>, so a broken or
+      hijacked release has a week to be noticed and pulled before it gets here:</p>
+    <pre><code>npm install --save-dev --save-exact \
+  --before="$(date -u -d '-7 days' +%Y-%m-%dT%H:%M:%SZ)" wrangler@latest</code></pre>
 
     <h2 id="deploy-token">Its own deploy token</h2>
     <p>Each repository gets its own Cloudflare API token, stored as the repository secrets
