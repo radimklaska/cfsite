@@ -20,8 +20,13 @@ import pixelmatch from 'pixelmatch';
 
 const PREVIEW = (process.env.PREVIEW_URL || '').replace(/\/$/, '');
 const PROD = (process.env.PROD_URL || 'https://cfsite.klaska.net').replace(/\/$/, '');
-// Fraction of differing pixels tolerated per page (antialiasing floor).
+// Two limits per page. The share of differing pixels catches broad changes (layout,
+// colours); the most differing pixels within any 16x16 square catches compact ones that
+// are a tiny share of a long page, like one changed character (a full stop changed to "!"
+// scores 18, one extra letter in a heading 76; identical renders score 0).
 const MAX_DIFF_RATIO = Number(process.env.MAX_DIFF_RATIO || 0.002);
+const WINDOW_SIZE = 16;
+const MAX_WINDOW_PIXELS = Number(process.env.MAX_WINDOW_PIXELS || 10);
 const DIFF_DIR = 'visual-diffs';
 const RESULTS_DIR = 'visual-results';
 
@@ -73,11 +78,13 @@ test.describe('preview matches production', () => {
       const diff = new PNG({ width, height });
       const differing = pixelmatch(a.data, b.data, diff.data, width, height, { threshold: 0.2, includeAA: false });
       const ratio = differing / (width * height);
+      const windowMax = pixelmatch(a.data, b.data, null, width, height,
+        { threshold: 0.2, includeAA: false, windowSize: WINDOW_SIZE });
 
-      const passed = ratio <= MAX_DIFF_RATIO && heightDelta <= 20;
+      const passed = ratio <= MAX_DIFF_RATIO && windowMax <= MAX_WINDOW_PIXELS && heightDelta <= 20;
       fs.mkdirSync(RESULTS_DIR, { recursive: true });
       fs.writeFileSync(path.join(RESULTS_DIR, `${p.name}.json`), JSON.stringify({
-        name: p.name, path: p.path, passed, ratio, differing, pixels: width * height,
+        name: p.name, path: p.path, passed, ratio, differing, pixels: width * height, windowMax,
         previewHeight: previewPng.height, productionHeight: prodPng.height,
       }));
 
@@ -88,6 +95,8 @@ test.describe('preview matches production', () => {
         fs.writeFileSync(path.join(DIFF_DIR, `${p.name}-production.png`), PNG.sync.write(prodPng));
       }
       expect.soft(heightDelta, `page height differs by ${heightDelta}px`).toBeLessThanOrEqual(20);
+      expect.soft(windowMax, `${windowMax} pixels differ within one ${WINDOW_SIZE}x${WINDOW_SIZE} square - see the visual diffs page`)
+        .toBeLessThanOrEqual(MAX_WINDOW_PIXELS);
       expect(
         ratio,
         `${differing} of ${width * height} pixels differ (${(ratio * 100).toFixed(3)}%) - see the visual-diffs artifact`

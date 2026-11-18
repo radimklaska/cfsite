@@ -33,6 +33,11 @@
       Playwright, takes full-page screenshots at a fixed viewport and compares them with
       pixelmatch (<a href="https://github.com/radimklaska/cfsite/blob/main/tests/visual.spec.mjs">tests/visual.spec.mjs</a>).
       There are no stored baseline images: production is the baseline.</p>
+    <p>A page fails on either of two limits: more than 0.2 % of its pixels differ (broad
+      changes such as layout or colours), or more than 10 pixels differ within any 16×16 square
+      (pixelmatch's <code>windowSize</code>). The second one catches compact changes that are a
+      tiny share of a long page: one changed character is enough. Identical renders score 0,
+      since both sides are rendered by the same browser in the same run.</p>
     <ul>
       <li>A pull request that changes how a page looks fails it <strong>on purpose</strong>.
         The preview comment says which pages differ and by how much, and links a single page
