@@ -59,9 +59,13 @@
       (<code>secrets.CLOUDFLARE_API_TOKEN != ''</code>) and skip the preview, instead of letting
       the job fail.</p>
     <h3 id="artifacts">Artifacts are zips</h3>
-    <p>By default an uploaded artifact downloads as a zip. For a single HTML report,
-      <code>actions/upload-artifact</code> v7 with <code>archive: false</code> keeps it a plain
-      file.</p>
+    <p>By default an uploaded artifact downloads as a zip. <code>actions/upload-artifact</code>
+      v7 with <code>archive: false</code> uploads a single file as it is, and GitHub serves it
+      inline with its own content type: an HTML report opens in the browser. Images can be
+      inlined into that one HTML file, as the visual diffs page does.</p>
+    <h3 id="summary-images">Job summaries cannot show local images</h3>
+    <p>A job summary is Markdown that only shows images from a public URL, so screenshots go
+      into the linked HTML page instead.</p>
 
     <h2 id="testing">Testing</h2>
     <h3 id="live-data">Pages with live data</h3>

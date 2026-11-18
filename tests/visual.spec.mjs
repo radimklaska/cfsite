@@ -6,6 +6,10 @@
  * a page looks fails this check by design; the diff images in the visual-diffs
  * artifact are what a human looks at before merging.
  *
+ * Every page also writes visual-results/<name>.json (pass or fail, with the numbers);
+ * tests/visual-report.mjs turns those into the job summary, the preview comment row
+ * and, when something differs, one HTML page with the images.
+ *
  * Named *.spec.mjs so `node --test` does not pick it up.
  */
 import fs from 'node:fs';
@@ -19,6 +23,7 @@ const PROD = (process.env.PROD_URL || 'https://cfsite.klaska.net').replace(/\/$/
 // Fraction of differing pixels tolerated per page (antialiasing floor).
 const MAX_DIFF_RATIO = Number(process.env.MAX_DIFF_RATIO || 0.002);
 const DIFF_DIR = 'visual-diffs';
+const RESULTS_DIR = 'visual-results';
 
 if (!PREVIEW) throw new Error('PREVIEW_URL is not set');
 
@@ -69,7 +74,14 @@ test.describe('preview matches production', () => {
       const differing = pixelmatch(a.data, b.data, diff.data, width, height, { threshold: 0.2, includeAA: false });
       const ratio = differing / (width * height);
 
-      if (ratio > MAX_DIFF_RATIO || heightDelta > 20) {
+      const passed = ratio <= MAX_DIFF_RATIO && heightDelta <= 20;
+      fs.mkdirSync(RESULTS_DIR, { recursive: true });
+      fs.writeFileSync(path.join(RESULTS_DIR, `${p.name}.json`), JSON.stringify({
+        name: p.name, path: p.path, passed, ratio, differing, pixels: width * height,
+        previewHeight: previewPng.height, productionHeight: prodPng.height,
+      }));
+
+      if (!passed) {
         fs.mkdirSync(DIFF_DIR, { recursive: true });
         fs.writeFileSync(path.join(DIFF_DIR, `${p.name}-diff.png`), PNG.sync.write(diff));
         fs.writeFileSync(path.join(DIFF_DIR, `${p.name}-preview.png`), PNG.sync.write(previewPng));
