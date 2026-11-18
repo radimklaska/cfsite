@@ -20,7 +20,8 @@ to the setup must update the page that explains it, and the other way round.
 
 - Changes go through pull requests. A PR that changes how pages look fails `visual` on
   purpose: check the `visual-diffs` artifact, then merge.
-- Keep every tool pinned to an exact version and commit `package-lock.json`.
+- Keep every tool pinned to an exact version and commit `package-lock.json`. Updates take
+  only releases at least 7 days old: `npm install --save-dev --save-exact --before="$(date -u -d '-7 days' +%Y-%m-%dT%H:%M:%SZ)" <pkg>@latest`.
 - Never create a DNS record for cfsite.klaska.net by hand: the deploy creates it.
 - Content: plain English, minimal design, no JavaScript, no web fonts. Keep Lighthouse
   accessibility, best practices and SEO at 100.
