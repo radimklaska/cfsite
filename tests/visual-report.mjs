@@ -42,7 +42,7 @@ const failed = results.filter((r) => !r.passed);
 
 // Job summary table.
 const rows = results.map((r) =>
-  `| \`${r.path}\` | ${r.passed ? '✅' : '❌'} | ${pct(r.ratio)} | ${delta(r)} |`);
+  `| \`${r.path}\` | ${r.passed ? '✅' : '❌'} | ${pct(r.ratio)} | ${r.windowMax ?? ''} | ${delta(r)} |`);
 fs.writeFileSync(path.join(OUT_DIR, 'summary.md'), [
   '## Visual regression: preview vs production',
   '',
@@ -50,7 +50,7 @@ fs.writeFileSync(path.join(OUT_DIR, 'summary.md'), [
     ? `${results.length - failed.length} of ${results.length} pages match production.`
     : 'No results: the comparison did not run to the end. See the job log.',
   '',
-  ...(results.length ? ['| Page | Match | Pixels differing | Height (preview − production) |', '|---|:-:|--:|--:|', ...rows] : []),
+  ...(results.length ? ['| Page | Match | Pixels differing | Most in one 16×16 square | Height (preview − production) |', '|---|:-:|--:|--:|--:|', ...rows] : []),
   '',
 ].join('\n'));
 
@@ -60,7 +60,7 @@ if (failed.length) {
   file = `visual-diffs-${sha}.html`;
   const sections = failed.map((r) => `
 <section>
-  <h2><code>${esc(r.path)}</code>: ${pct(r.ratio)} of pixels differ, height ${delta(r)}</h2>
+  <h2><code>${esc(r.path)}</code>: ${pct(r.ratio)} of pixels differ, up to ${r.windowMax ?? '?'} in one 16×16 square, height ${delta(r)}</h2>
   <div class="row">
     ${[['preview', 'Preview (this PR)'], ['production', 'Production'], ['diff', 'Difference (red)']]
       .map(([k, label]) => {
