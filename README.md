@@ -14,7 +14,8 @@ template for a new site (see [New site](https://cfsite.klaska.net/new-site/)).
 
 ## Deploys and previews (`.github/workflows/deploy.yml`)
 
-- Push to `main` (or run the workflow by hand): production.
+- Push to `main` (or run the workflow by hand on `main`): production. A manual run on
+  any other branch fails and deploys nothing.
 - Pull request: a Workers Preview `pr-<N>`, a new comment per deploy with the preview
   URL, this commit's URL, the run, a QR code and Lighthouse scores; older preview comments
   are collapsed. Jobs `visual` (screenshots vs production; `tests/visual-report.mjs` makes
