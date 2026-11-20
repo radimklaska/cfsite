@@ -94,6 +94,10 @@
     <p>A push to <code>main</code> runs <code>wrangler deploy</code>. The workflow can also be
       started by hand (Actions → Deploy to Cloudflare → Run workflow) to redeploy without a
       commit. Only one production deploy runs at a time.</p>
+    <p>Only the default branch deploys to production. The Run workflow button lets you pick
+      any branch; a run started from another one fails at its first step and deploys
+      nothing, so a mis-click cannot publish an unreviewed branch. Branches get previews
+      through pull requests.</p>
 
   </main>
 
