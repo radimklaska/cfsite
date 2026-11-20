@@ -34,9 +34,11 @@
     <h2 id="principles">Principles</h2>
     <ol>
       <li><strong>Static files only.</strong> An assets-only Cloudflare Worker serves a folder of
-        files. No server code, and no build step unless the site needs a generator.</li>
+        files. No server code beyond a ten-line Worker that redirects www, and no build step
+        unless the site needs a generator.</li>
       <li><strong>One site, one hostname.</strong> Each site lives on its own subdomain as a
-        Worker custom domain. Production exists nowhere else.</li>
+        Worker custom domain, and its <code>www.</code> redirects there. Production exists
+        nowhere else.</li>
       <li><strong>Every change goes through a pull request</strong> with a live preview, a comment
         with its links, a QR code for phones and Lighthouse scores.</li>
       <li><strong>Production is the baseline.</strong> Visual regression compares the preview
@@ -59,6 +61,8 @@
       <tbody>
         <tr><td><a href="/hosting/#worker">Assets-only Worker on a custom domain</a></td>
           <td><a href="https://github.com/radimklaska/cfsite/blob/main/wrangler.jsonc">wrangler.jsonc</a></td></tr>
+        <tr><td><a href="/hosting/#www">www redirect</a></td>
+          <td><a href="https://github.com/radimklaska/cfsite/blob/main/www-redirect/wrangler.jsonc">www-redirect/</a></td></tr>
         <tr><td><a href="/hosting/#not-found">Custom 404 page</a></td>
           <td><a href="https://github.com/radimklaska/cfsite/blob/main/site/404.html">site/404.html</a></td></tr>
         <tr><td><a href="/hosting/#redirects">Redirects</a></td>

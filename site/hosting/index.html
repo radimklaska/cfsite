@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hosting · cfsite</title>
-  <meta name="description" content="An assets-only Cloudflare Worker on a custom domain: configuration, 404 page, redirects, analytics, pinned tooling and the deploy token.">
+  <meta name="description" content="An assets-only Cloudflare Worker on a custom domain: configuration, www redirect, 404 page, redirects, analytics, pinned tooling and the deploy token.">
   <link rel="canonical" href="https://cfsite.klaska.net/hosting/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
@@ -30,7 +30,7 @@
       <a href="https://github.com/radimklaska/cfsite/blob/main/wrangler.jsonc">wrangler.jsonc</a>.</p>
 
     <h2 id="worker">An assets-only Worker</h2>
-    <p>The Worker has no script, only <a href="https://developers.cloudflare.com/workers/static-assets/">static assets</a>:
+    <p>The site's Worker has no script, only <a href="https://developers.cloudflare.com/workers/static-assets/">static assets</a>:
       every request is a free static-asset request, and there is no code to break or keep up to date.</p>
     <ul>
       <li><code>assets.directory</code> is a dedicated folder, here <code>site/</code>, or the
@@ -51,11 +51,13 @@
       those <code>noindex</code>.</p>
 
     <h2 id="www">www redirects to the hostname</h2>
-    <p>Every site also answers on <code>www.</code> plus its hostname, here
-      <code>www.cfsite.klaska.net</code>, with a 301 to the same path and query on the
+    <p>A site built from this template also answers on <code>www.</code> plus its hostname,
+      here <code>www.cfsite.klaska.net</code>, with a 301 to the same path and query on the
       hostname. An assets-only Worker cannot do that: <code>_redirects</code> matches paths, not
-      hostnames. A second, tiny Worker in <code>www-redirect/</code> does it instead, with its own
-      custom domain. Only www requests run its code, so the site's Worker stays assets-only.</p>
+      hostnames. A second, tiny Worker in <code>www-redirect/</code>
+      (<a href="https://github.com/radimklaska/cfsite/blob/main/www-redirect/index.js">index.js</a>,
+      <a href="https://github.com/radimklaska/cfsite/blob/main/www-redirect/wrangler.jsonc">wrangler.jsonc</a>)
+      does it instead, with its own custom domain. Only www requests run its code, so the site's Worker stays assets-only.</p>
     <p>It drops the leading <code>www.</code> from whatever hostname it is called on, so a new
       site changes only the Worker name and the route in
       <code>www-redirect/wrangler.jsonc</code>. The production deploy deploys it right after
@@ -82,7 +84,7 @@
     <h2 id="pinned">Pinned tooling</h2>
     <p>Exact versions in <a href="https://github.com/radimklaska/cfsite/blob/main/package.json">package.json</a>
       (wrangler, Playwright, Lighthouse, qrcode), a committed <code>package-lock.json</code> that
-      CI installs with <code>npm ci</code>, and a fixed <code>compatibility_date</code>. Updates
+      CI installs with <code>npm ci</code>, and a fixed <code>compatibility_date</code> in each Worker's configuration. Updates
       are deliberate pull requests, and their previews show what changed.</p>
     <p>Updates take only releases that are <strong>at least 7 days old</strong>, so a broken or
       hijacked release has a week to be noticed and pulled before it gets here:</p>
