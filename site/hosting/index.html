@@ -26,7 +26,7 @@
   <main>
     <h1>Hosting</h1>
     <p class="lead">One Cloudflare Worker per site, serving a folder of static files on the
-      site's own hostname. Configured in
+      site's own hostname, and a tiny one that redirects www to it. Configured in
       <a href="https://github.com/radimklaska/cfsite/blob/main/wrangler.jsonc">wrangler.jsonc</a>.</p>
 
     <h2 id="worker">An assets-only Worker</h2>
@@ -40,15 +40,27 @@
         <code>hosting/index.html</code> is served as <code>/hosting/</code>.</li>
     </ul>
 
-    <h2 id="custom-domain">One hostname, nothing on workers.dev</h2>
+    <h2 id="custom-domain">One address, nothing on workers.dev</h2>
     <p><code>routes</code> with <code>custom_domain: true</code> attaches the Worker to its
       hostname, here <code>cfsite.klaska.net</code>. On the first deploy Cloudflare creates the
       DNS record and the certificate itself; HTTPS works within a minute or two, and plain HTTP
       redirects to it.</p>
     <p><code>workers_dev: false</code> keeps production off the shared
-      <code>*.workers.dev</code> domain, so the site has exactly one address.
+      <code>*.workers.dev</code> domain, so the site is served from one hostname only.
       <code>preview_urls: true</code> still allows the per-PR previews there, and Cloudflare marks
       those <code>noindex</code>.</p>
+
+    <h2 id="www">www redirects to the hostname</h2>
+    <p>Every site also answers on <code>www.</code> plus its hostname, here
+      <code>www.cfsite.klaska.net</code>, with a 301 to the same path and query on the
+      hostname. An assets-only Worker cannot do that: <code>_redirects</code> matches paths, not
+      hostnames. A second, tiny Worker in <code>www-redirect/</code> does it instead, with its own
+      custom domain. Only www requests run its code, so the site's Worker stays assets-only.</p>
+    <p>It drops the leading <code>www.</code> from whatever hostname it is called on, so a new
+      site changes only the Worker name and the route in
+      <code>www-redirect/wrangler.jsonc</code>. The production deploy deploys it right after
+      the site, and Cloudflare creates its DNS record and certificate the same way, also for a
+      two-level name like this one. The deploy token needs nothing more.</p>
 
     <h2 id="not-found">Custom 404 page</h2>
     <p><code>not_found_handling: "404-page"</code> serves the nearest <code>404.html</code> with
@@ -91,7 +103,8 @@
       settings.</p>
 
     <h2 id="production">Production deploys</h2>
-    <p>A push to <code>main</code> runs <code>wrangler deploy</code>. The workflow can also be
+    <p>A push to <code>main</code> runs <code>wrangler deploy</code>, then the same for the
+      <a href="#www">www redirect</a>. The workflow can also be
       started by hand (Actions → Deploy to Cloudflare → Run workflow) to redeploy without a
       commit. Only one production deploy runs at a time.</p>
     <p>Only the default branch deploys to production. The Run workflow button lets you pick

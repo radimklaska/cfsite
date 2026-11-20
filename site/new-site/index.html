@@ -38,6 +38,9 @@
         <ul>
           <li><code>wrangler.jsonc</code>: the Worker <code>name</code> (lowercase, hyphens) and
             the hostname in <code>routes</code>;</li>
+          <li><code>www-redirect/wrangler.jsonc</code>: the same, for the
+            <a href="/hosting/#www">www redirect</a> (<code>&lt;name&gt;-www</code> and
+            <code>www.&lt;host&gt;</code>);</li>
           <li><code>package.json</code>: <code>name</code>;</li>
           <li><code>.github/workflows/deploy.yml</code>: <code>PROD_URL</code>, the build step if
             the site is generated, <code>SITE_DIR</code> and the paths in <em>Check the site</em>;</li>
@@ -50,13 +53,14 @@
         the redirects, as production will.</li>
       <li>Create the deploy token: <code>scripts/create-deploy-token.sh &lt;repo&gt;</code> (see
         <a href="/hosting/#deploy-token">Hosting</a>).</li>
-      <li>Make sure the hostname has <strong>no DNS record</strong>. Do not create one: the
-        first deploy does (<a href="/gotchas/#dns">why</a>).</li>
-      <li>Push the first commit to <code>main</code>. The deploy attaches the hostname, and
-        Cloudflare creates the DNS record and the certificate.</li>
+      <li>Make sure the hostname and its <code>www.</code> have <strong>no DNS record</strong>.
+        Do not create one: the first deploy does (<a href="/gotchas/#dns">why</a>).</li>
+      <li>Push the first commit to <code>main</code>. The deploy attaches both hostnames, and
+        Cloudflare creates the DNS records and the certificates.</li>
       <li>Verify: <code>curl -sI https://&lt;host&gt;/</code> answers 200 from
         <code>server: cloudflare</code>, <code>http://</code> redirects to https, a missing path
-        returns the 404 page, and the analytics script is there:
+        returns the 404 page, <code>https://www.&lt;host&gt;/</code> answers 301 to
+        <code>https://&lt;host&gt;/</code>, and the analytics script is there:
         <code>curl -s -H 'Accept: text/html' https://&lt;host&gt;/ | grep -c cloudflareinsights</code>.</li>
       <li>From now on, changes go through pull requests. Set up the Claude review secret
         (<a href="/checks/#claude">Checks</a>), and, if the branch should only take pull

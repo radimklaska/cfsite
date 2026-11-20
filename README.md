@@ -8,13 +8,16 @@ template for a new site (see [New site](https://cfsite.klaska.net/new-site/)).
 
 - Cloudflare Worker `cfsite`, static assets only, on the custom domain
   cfsite.klaska.net (`wrangler.jsonc`). Publishes `site/`; nothing to build.
-- Cloudflare creates the DNS record and certificate on deploy. Never create a DNS record
-  for the hostname by hand: the deploy refuses to replace one (error 100117).
+- Worker `cfsite-www` (`www-redirect/`) on www.cfsite.klaska.net: 301 to
+  cfsite.klaska.net, path and query kept. Deployed with the site.
+- Cloudflare creates the DNS records and certificates on deploy. Never create a DNS record
+  for either hostname by hand: the deploy refuses to replace one (error 100117).
 - Analytics: Cloudflare Web Analytics, added by the klaska.net zone (no tag in the code).
 
 ## Deploys and previews (`.github/workflows/deploy.yml`)
 
-- Push to `main` (or run the workflow by hand on `main`): production. A manual run on
+- Push to `main` (or run the workflow by hand on `main`): production, site and www
+  redirect. A manual run on
   any other branch fails and deploys nothing.
 - Pull request: a Workers Preview `pr-<N>`, a new comment per deploy with the preview
   URL, this commit's URL, the run, a QR code and Lighthouse scores; older preview comments

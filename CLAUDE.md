@@ -11,6 +11,8 @@ to the setup must update the page that explains it, and the other way round.
   The header/nav/footer is repeated in every page on purpose (no build step): change all
   pages together.
 - `wrangler.jsonc`: assets-only Worker `cfsite`, custom domain cfsite.klaska.net.
+- `www-redirect/`: Worker `cfsite-www` on www.cfsite.klaska.net, 301 to the hostname
+  without `www.`. Deployed by the production job after the site.
 - `.github/workflows/deploy.yml`: production, previews + comment (QR, collapse), visual,
   lighthouse, cleanup. `.github/lighthouse-summary.jq`: Lighthouse job summary.
 - `tests/visual.spec.mjs`: preview vs production screenshots; keep the page list complete.
@@ -24,7 +26,8 @@ to the setup must update the page that explains it, and the other way round.
   purpose: open the diffs page linked in the preview comment, then merge.
 - Keep every tool pinned to an exact version and commit `package-lock.json`. Updates take
   only releases at least 7 days old: `npm install --save-dev --save-exact --before="$(date -u -d '-7 days' +%Y-%m-%dT%H:%M:%SZ)" <pkg>@latest`.
-- Never create a DNS record for cfsite.klaska.net by hand: the deploy creates it.
+- Never create a DNS record for cfsite.klaska.net or www.cfsite.klaska.net by hand: the
+  deploy creates them.
 - Content: plain English, minimal design, no JavaScript, no web fonts. Keep Lighthouse
   accessibility, best practices and SEO at 100.
 - Links to repository files use `https://github.com/radimklaska/cfsite/blob/main/...`; the
