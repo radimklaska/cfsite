@@ -31,7 +31,10 @@
     <h3 id="dns">The first deploy will not replace a DNS record</h3>
     <p>If the hostname already has an A, AAAA or CNAME record, <code>wrangler deploy</code>
       fails: <em>already has externally managed DNS records [code: 100117]</em>. Delete the record
-      and re-run the job. Cloudflare then creates its own record and certificate.</p>
+      and re-run the job. Cloudflare then creates its own record and certificate. The same
+      goes for <code>www.</code> plus the hostname, which the <a href="/hosting/#www">www
+      redirect</a> claims: an old <code>www</code> record pointing somewhere else makes that
+      step fail.</p>
     <h3 id="previews-config"><code>wrangler preview</code> needs <code>"previews": {}</code></h3>
     <p>Without the (empty) block in <code>wrangler.jsonc</code> the preview upload fails.</p>
     <h3 id="compat-date">A compatibility date that is too new</h3>
